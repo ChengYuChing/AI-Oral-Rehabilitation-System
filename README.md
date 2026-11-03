@@ -1,8 +1,8 @@
 # AI-Based Oral Rehabilitation System
 
-**Project:** Real-time computer vision for facial motion recognition and interactive oral rehabilitation.
+**Project:** Real-time, landmark-based mouth movement recognition for oral rehabilitation.
 
-**Focus:** Facial landmark detection · geometric feature engineering · rule-based motion recognition · real-time application integration
+**Focus:** Computer vision · geometric feature engineering · rule-based recognition · real-time Python application
 
 ---
 
@@ -10,29 +10,25 @@
 
 | Workstream | Core Challenge | Engineering Approach | Outcome |
 |---|---|---|---|
-| **P1 — Problem Definition** | Rehabilitation movements need observable, machine-readable criteria | Translate mouth and cheek exercises into geometric measurements | Defined motion detection tasks |
-| **P2 — Feature Extraction** | Raw webcam frames do not directly represent movement | Detect facial landmarks and calculate mouth and cheek distances and ratios | Extracted measurable facial features |
-| **P3 — Motion Recognition** | Facial measurements must be mapped to exercise actions | Implement threshold-based rules for selected oral movements | Built mouth and cheek motion detection logic |
-| **P4 — System Integration** | Recognition code needs an interactive workflow | Connect webcam processing and motion feedback to a PyQt5 interface | Developed an interactive prototype with timing and repetition tracking |
+| **P1 — Problem Definition** | Oral movements must be expressed as measurable inputs | Frame mouth opening as a geometric landmark task | A concrete recognition criterion |
+| **P2 — Feature Extraction** | Webcam frames are not directly usable as motion measurements | Extract lip landmarks and compute height and width | Numerical mouth geometry |
+| **P3 — Motion Recognition** | Geometry must be mapped to a movement state | Calculate a mouth aspect ratio and apply a threshold | Open/closed classification |
+| **P4 — Real-Time Integration** | The algorithm needs a live input and observable result | Connect webcam capture, landmark extraction, and text overlay | Minimal interactive OpenCV application |
 
 ---
 
 ## End-to-End System Overview
 
 ```mermaid
-flowchart TD
-    A["P1 · Exercise Requirements<br/>Define measurable oral movements"]
-    B["Webcam Frames"]
-    C["P2 · Facial Landmarks<br/>Mouth and cheek geometry"]
-    D["P3 · Motion Recognition<br/>Geometric ratios and rules"]
-    E["P4 · Application Integration<br/>PyQt5 · timers · repetition tracking"]
-    F["Interactive Rehabilitation Prototype"]
-
-    A -. guides .-> C
-    B --> C --> D --> E --> F
+flowchart LR
+    A["P1 · Define Mouth Movement"] --> B["Webcam Input"]
+    B --> C["P2 · Lip Landmark Extraction"]
+    C --> D["Mouth Height & Width"]
+    D --> E["P3 · Aspect Ratio + Threshold"]
+    E --> F["P4 · Real-Time OpenCV Feedback"]
 ```
 
-**Storyline:** define measurable movements → extract facial geometry → recognize exercise actions → integrate the algorithms into a real-time application.
+**Storyline:** define a measurable movement → extract geometry from camera frames → classify mouth opening → display results in real time.
 
 ---
 
@@ -40,50 +36,59 @@ flowchart TD
 
 ### P1 — Problem Definition
 
-> **Key Question —** How can oral rehabilitation exercises become measurable computer vision tasks?
+> **Key Question —** How can a mouth-opening exercise be expressed as a measurable computer vision task?
 
-- Translated observable mouth and cheek movements into recognition requirements rather than relying on video display alone.
-- Selected geometric measurements—such as mouth opening, horizontal mouth distance, and cheek landmark distances—as inputs for motion detection.
+The original rehabilitation prototype explored multiple oral movements. This repository deliberately isolates **mouth opening** as a small, inspectable algorithm example rather than publishing the entire legacy GUI and exercise workflow.
 
-**Engineering takeaway:** Establish motion criteria before choosing a recognition rule.
+**Takeaway:** Narrow the movement definition to one clear and reproducible recognition task.
 
 ### P2 — Facial Feature Extraction
 
-> **Key Question —** How do we turn live camera frames into numerical features?
+> **Key Question —** How can a video frame be converted into numerical features?
 
-- Processed webcam frames and obtained facial landmarks using computer vision libraries.
-- Computed mouth height, mouth width, and relative distances around facial features.
-- Used geometric relationships as compact descriptors for subsequent motion recognition.
+- Read frames from a webcam using **OpenCV**.
+- Extract facial landmark coordinates with `face_recognition.face_landmarks()`.
+- Compute mouth opening and width from selected upper and lower lip landmark pairs.
 
-**Engineering takeaway:** Convert raw images into interpretable features before evaluating movements.
+**Takeaway:** Separate landmark extraction from downstream movement classification.
 
-### P3 — Motion Recognition Algorithm
+### P3 — Motion Recognition
 
-> **Key Question —** How can measured facial geometry indicate an exercise movement?
+> **Key Question —** How can facial geometry determine whether the mouth is open?
 
-- Implemented rule-based checks on landmark measurements to detect selected mouth-opening and cheek movements.
-- Used geometric ratios and thresholds to distinguish movement states.
-- Connected recognition states to exercise counters and on-screen feedback.
+The original prototype used a mouth ratio computed from lip landmark distances. The simplified implementation retains the same conceptual rule while correcting the original width-distance calculation to use Euclidean distance:
 
-**Engineering takeaway:** Build explainable motion logic on top of extracted features.
+```text
+mouth_ratio = mouth_height / (2 × mouth_width)
+mouth_open = mouth_ratio > 0.35
+```
 
-### P4 — Real-Time System Integration
+- **Input:** Upper and lower lip landmarks.
+- **Feature:** Mouth-height-to-width ratio.
+- **Output:** Boolean mouth-open state.
 
-> **Key Question —** How can the recognition pipeline support an interactive exercise workflow?
+The threshold **0.35** was inherited from the original prototype. It is not presented as clinically validated or as a benchmarked accuracy result.
 
-- Integrated webcam frame processing and detection results into a PyQt5 GUI.
-- Added exercise controls, timing, repetition tracking, and visual feedback.
-- Connected the recognition pipeline with the application interface to create an interactive prototype.
+**Takeaway:** Build interpretable recognition logic from measurable geometric features.
 
-**Engineering takeaway:** Move from individual vision functions to an end-to-end application workflow.
+### P4 — Real-Time Integration
+
+> **Key Question —** How can the recognition algorithm be connected to a live application?
+
+- Capture and mirror webcam frames.
+- Extract landmarks and evaluate the mouth-opening rule for the first detected face.
+- Overlay the current state and feature ratio on the video stream.
+- Release camera and display resources when exiting.
+
+**Takeaway:** Integrate a compact vision algorithm into a usable live processing loop.
 
 ---
 
 ## Key Engineering Takeaways
 
-- **Problem formulation:** Converted exercise requirements into observable facial motion tasks.
-- **Computer vision and algorithm design:** Combined facial landmark extraction with geometric features and rule-based recognition.
-- **Software integration:** Connected live camera processing, motion feedback, and interactive GUI controls.
+- **Problem formulation:** Translated a rehabilitation movement into a measurable classification task.
+- **Feature engineering:** Derived mouth geometry from facial landmarks.
+- **Software integration:** Connected webcam I/O, recognition logic, and live feedback in a minimal Python program.
 
 ---
 
@@ -91,10 +96,10 @@ flowchart TD
 
 | Area | Technologies / Methods |
 |---|---|
-| **Programming** | Python |
-| **Computer Vision** | OpenCV · MediaPipe · `face_recognition` · dlib |
-| **Feature & Motion Logic** | Facial landmarks · geometric distances · ratios · rule-based thresholds |
-| **Application** | PyQt5 · webcam processing · interactive exercise tracking |
+| Programming | Python |
+| Computer Vision | OpenCV · `face_recognition` |
+| Algorithm | Facial landmarks · Euclidean distance · geometric ratio · threshold-based classification |
+| Runtime | Live webcam inference and text overlay |
 
 ---
 
@@ -104,9 +109,20 @@ flowchart TD
 .
 ├── README.md
 ├── main.py
-├── mouth_function.py
-├── Mouth.ui
-└── requirements.txt
+├── motion_recognition.py
+├── requirements.txt
+└── .gitignore
 ```
 
-**Repository scope:** A portfolio-oriented snapshot of an earlier prototype. `main.py` originates from `main_V2.py`, `mouth_function.py` contains geometric feature and motion logic, and `Mouth.ui` defines the interface. The original application also referenced local instructional videos and a logo that are not provided here. The full GUI workflow has not been revalidated in a clean environment.
+## Run Locally
+
+Install dependencies in a Python environment compatible with `face-recognition` and `dlib`:
+
+```bash
+pip install -r requirements.txt
+python main.py
+```
+
+Allow webcam access and press **Q** to exit. Webcam behavior and dependency installation have **not been validated on every operating system**.
+
+**Scope and limitations:** This is a focused, source-derived portfolio example, not the full original PyQt5 rehabilitation application. It does not include exercise videos, face images, patient data, cheek recognition, or a clinical validation study. The original width-distance calculation was corrected; the historical classification threshold remains unvalidated.
