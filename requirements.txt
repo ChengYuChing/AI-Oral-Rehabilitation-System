@@ -1,7 +1,2 @@
 opencv-python
-mediapipe
 face-recognition
-dlib
-PyQt5
-numpy
-pyshine
